@@ -1,0 +1,164 @@
+<html>
+  <body style="margin:0">
+    <canvas id="c" style="display:block; margin:0;"></canvas>
+    <script>
+      const GAME_WIDTH = 300;
+      const GAME_HEIGHT = 300;
+      const canvas = document.getElementById("c");
+      const ctx = canvas.getContext("2d");
+      let playerX = GAME_WIDTH / 2;
+      let playerY = GAME_HEIGHT / 2;
+      let health = 5;
+      let velX = 0, velY = 0;
+      const bullets = [];
+      let score = 0;
+      let flashSide = 0;
+      let flashTimer = 0;
+      let shakeTimer = 0;
+      let shakeAmount = 0;
+      function damagePlayer() {
+        health--;
+        if (health < 1) {
+          alert("Game Over! Score: " + score);
+          location.reload();
+        }
+        shakeTimer = 10;
+        shakeAmount = 5;
+      }
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      window.onresize = resizeCanvas;
+      resizeCanvas();
+      onkeydown = (e) => {
+        if (e.key === "ArrowLeft")  velX = -2;
+        if (e.key === "ArrowRight") velX =  2;
+        if (e.key === "ArrowUp")    velY = -2;
+        if (e.key === "ArrowDown")  velY =  2;
+      };
+      onkeyup = (e) => {
+        if (e.key === "ArrowLeft"  || e.key === "ArrowRight") velX = 0;
+        if (e.key === "ArrowUp"    || e.key === "ArrowDown")  velY = 0;
+      };
+      function spawnBullet() {
+        const side = Math.floor(Math.random() * 4);
+        let bx = 0, by = 0;
+
+        if (side === 0) {
+          bx = Math.random() * GAME_WIDTH;
+          by = 0;
+        } else if (side === 1) {
+          bx = Math.random() * GAME_WIDTH;
+          by = GAME_HEIGHT;
+        } else if (side === 2) {
+          bx = 0;
+          by = Math.random() * GAME_HEIGHT;
+        } else {
+          bx = GAME_WIDTH;
+          by = Math.random() * GAME_HEIGHT;
+        }
+
+        const dx = playerX - bx;
+        const dy = playerY - by;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        const speed = 2;
+
+        bullets.push({
+          x: bx,
+          y: by,
+          vx: (dx / dist) * speed,
+          vy: (dy / dist) * speed
+        });
+      }
+      setInterval(() => {
+        score++;
+        if (Math.random() < 0.1) {
+          spawnBullet();
+        }
+        playerX += velX;
+        playerY += velY;
+        if (playerX < 0) playerX = 0;
+        if (playerX > GAME_WIDTH) playerX = GAME_WIDTH;
+        if (playerY < 0) playerY = 0;
+        if (playerY > GAME_HEIGHT) playerY = GAME_HEIGHT;
+        const scale = Math.min(canvas.width / GAME_WIDTH, canvas.height / GAME_HEIGHT);
+        let offsetX = 0, offsetY = 0;
+        if (shakeTimer > 0) {
+          shakeTimer--;
+          offsetX = (Math.random() - 0.5) * shakeAmount;
+          offsetY = (Math.random() - 0.5) * shakeAmount;
+        }
+        ctx.setTransform(scale, 0, 0, scale, offsetX, offsetY);
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+        if (!flashSide) {
+          const r = Math.random();
+          if (r < 0.005) { 
+            flashSide = 1;
+            flashTimer = 30;
+          } else if (r < 0.01) {
+            flashSide = 2;
+            flashTimer = 30;
+          }
+        }
+        if (flashSide) {
+          if (flashTimer > 1) {
+            ctx.globalAlpha = 0.3;
+            ctx.fillStyle = "red";
+            if (flashSide === 1) {
+              ctx.fillRect(0, 0, GAME_WIDTH / 2, GAME_HEIGHT);
+            } else {
+              ctx.fillRect(GAME_WIDTH / 2, 0, GAME_WIDTH / 2, GAME_HEIGHT);
+            }
+            ctx.globalAlpha = 1;
+
+            flashTimer--;
+          } 
+          else if (flashTimer === 1) {
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = "red";
+            if (flashSide === 1) {
+              ctx.fillRect(0, 0, GAME_WIDTH / 2, GAME_HEIGHT);
+              if (playerX < GAME_WIDTH / 2) {
+                damagePlayer();
+              }
+            } else {
+              ctx.fillRect(GAME_WIDTH / 2, 0, GAME_WIDTH / 2, GAME_HEIGHT);
+              if (playerX > GAME_WIDTH / 2) {
+                damagePlayer();
+              }
+            }
+            flashSide = 0;
+            flashTimer = 0;
+          }
+        }
+        ctx.fillStyle = "#0f0";
+        ctx.fillRect(playerX - 5, playerY - 5, 10, 10);
+        ctx.fillStyle = "#f00";
+        for (let i = bullets.length - 1; i >= 0; i--) {
+          const bullet = bullets[i];
+          bullet.x += bullet.vx;
+          bullet.y += bullet.vy;
+          ctx.fillRect(bullet.x - 2, bullet.y - 2, 4, 4);
+          const dx = Math.abs(bullet.x - playerX);
+          const dy = Math.abs(bullet.y - playerY);
+          if (dx < 7 && dy < 7) {
+            damagePlayer();
+            bullets.splice(i, 1);
+            continue;
+          }
+          if (
+            bullet.x < 0 || bullet.x > GAME_WIDTH ||
+            bullet.y < 0 || bullet.y > GAME_HEIGHT
+          ) {
+            bullets.splice(i, 1);
+          }
+        }
+        ctx.fillStyle = "#fff";
+        ctx.fillText("HP: " + health, 10, 20);
+        ctx.fillText("Score: " + score, 10, 40);
+      }, 33);
+    </script>
+  </body>
+</html>
