@@ -6,7 +6,7 @@ Welcome to my YSWS project. This game is fully encoded into a QR code for anyone
 ## Play the Game!
 You can play the game right here in your browser. Simply click the link below and use the **arrow keys** to move!
 
-[Launch the Game](pdl.sharkingstudios.hackclub.app/test)
+[Launch the Game](https://pdl.sharkingstudios.hackclub.app/test)
 
 or copy the code straight into your browser!
 ```
