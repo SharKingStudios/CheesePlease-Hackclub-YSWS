@@ -1,26 +1,34 @@
 <html>
-  <body style="margin:0">
+  <body style="margin:0; background-color: rgb(70, 70, 70);">
     <canvas id="c" style="display:block; margin:0;"></canvas>
     <script>
       const GAME_WIDTH = 300;
       const GAME_HEIGHT = 300;
       const canvas = document.getElementById("c");
       const ctx = canvas.getContext("2d");
-      let playerX = GAME_WIDTH / 2;
-      let playerY = GAME_HEIGHT / 2;
-      let health = 5;
-      let velX = 0, velY = 0;
-      const bullets = [];
-      let score = 0;
-      let flashSide = 0;
-      let flashTimer = 0;
-      let shakeTimer = 0;
-      let shakeAmount = 0;
+      let playerX, playerY, health, velX, velY, bullets, score;
+      let flashSide, flashTimer, shakeTimer, shakeAmount;
+
+      function resetGame() {
+        playerX = GAME_WIDTH / 2;
+        playerY = GAME_HEIGHT / 2;
+        health = 5;
+        velX = 0;
+        velY = 0;
+        bullets = [];
+        score = 0;
+        flashSide = 0;
+        flashTimer = 0;
+        shakeTimer = 0;
+        shakeAmount = 0;
+      }
+
       function damagePlayer() {
         health--;
         if (health < 1) {
           alert("Game Over! Score: " + score);
-          location.reload();
+          resetGame();
+          return;
         }
         shakeTimer = 10;
         shakeAmount = 5;
@@ -83,11 +91,12 @@
         if (playerY < 0) playerY = 0;
         if (playerY > GAME_HEIGHT) playerY = GAME_HEIGHT;
         const scale = Math.min(canvas.width / GAME_WIDTH, canvas.height / GAME_HEIGHT);
-        let offsetX = 0, offsetY = 0;
+        let offsetX = (canvas.width - GAME_WIDTH * scale) / 2;
+        let offsetY = (canvas.height - GAME_HEIGHT * scale) / 2;
         if (shakeTimer > 0) {
           shakeTimer--;
-          offsetX = (Math.random() - 0.5) * shakeAmount;
-          offsetY = (Math.random() - 0.5) * shakeAmount;
+          offsetX += (Math.random() - 0.5) * shakeAmount;
+          offsetY += (Math.random() - 0.5) * shakeAmount;
         }
         ctx.setTransform(scale, 0, 0, scale, offsetX, offsetY);
         ctx.fillStyle = "#000";
@@ -159,6 +168,8 @@
         ctx.fillText("HP: " + health, 10, 20);
         ctx.fillText("Score: " + score, 10, 40);
       }, 33);
+
+      resetGame();
     </script>
   </body>
 </html>
